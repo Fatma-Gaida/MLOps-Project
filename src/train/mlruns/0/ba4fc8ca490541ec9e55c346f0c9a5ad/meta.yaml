@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/MLOPs/src/train/mlruns/0/ba4fc8ca490541ec9e55c346f0c9a5ad/artifacts
+end_time: 1761207279178
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: ba4fc8ca490541ec9e55c346f0c9a5ad
+run_name: skittish-fawn-217
+run_uuid: ba4fc8ca490541ec9e55c346f0c9a5ad
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761207259887
+status: 3
+tags: []
+user_id: chaima1

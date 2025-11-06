@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/MLOPs/src/train/mlruns/0/90beb4e2c27846c89135195663dd69e3/artifacts
+end_time: 1761164925196
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 90beb4e2c27846c89135195663dd69e3
+run_name: upbeat-midge-959
+run_uuid: 90beb4e2c27846c89135195663dd69e3
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761164912781
+status: 3
+tags: []
+user_id: chaima1

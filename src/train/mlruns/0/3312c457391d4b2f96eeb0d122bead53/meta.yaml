@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/MLOPs/src/train/mlruns/0/3312c457391d4b2f96eeb0d122bead53/artifacts
+end_time: 1761167089270
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 3312c457391d4b2f96eeb0d122bead53
+run_name: respected-shrike-342
+run_uuid: 3312c457391d4b2f96eeb0d122bead53
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761167078272
+status: 3
+tags: []
+user_id: chaima1

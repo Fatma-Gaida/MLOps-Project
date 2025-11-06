@@ -1,0 +1,15 @@
+artifact_uri: file:///D:/MLOPs/src/train/mlruns/0/9f8218cf276941fe9f5a66d0a52ac271/artifacts
+end_time: 1761165794413
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+run_id: 9f8218cf276941fe9f5a66d0a52ac271
+run_name: bold-sponge-674
+run_uuid: 9f8218cf276941fe9f5a66d0a52ac271
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1761165779256
+status: 3
+tags: []
+user_id: chaima1

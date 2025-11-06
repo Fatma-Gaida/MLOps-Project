@@ -1,0 +1,42 @@
+services:
+  fastapi:
+    build:
+      context: ./services/transformer_service
+      dockerfile: Dockerfile
+    container_name: fastapi_app
+    ports:
+      - "8000:8000"
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - MODEL_PATH=/transformer_model_final
+    volumes:
+      - ./services/transformer_service:/service
+      - ./transformer_model_final:/transformer_model_final
+    working_dir: /service
+    depends_on:
+      mlflow:
+        condition: service_started
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    networks:
+      - mlops_network
+
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.14.1
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    environment:
+      - BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
+      - ARTIFACT_ROOT=/mlflow/artifacts
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+      - ./artifacts:/mlflow/artifacts
+      - ./mlflow.db:/mlflow/mlflow.db
+    working_dir: /mlflow
+    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+    networks:
+      - mlops_network
+
+networks:
+  mlops_network:
+    driver: bridge

@@ -1,39 +1,22 @@
-# Virtual Environment
+# Virtual environment
 .venv/
+venv/
 
-# MLflow
-mlruns/
-mlflow.db
-*.db
-
-# Model files (often large)
-*.pkl
-*.h5
-*.pb
-*.pt
+# ML models and weights
 *.pth
-*.onnx
 *.safetensors
 
-# Logs
-*.log
-output.log
+# MLflow runs
+mlruns/
 
-# Docker
-docker-compose.yml
-
-# Environment variables
-.env
-
-# Artifacts (models, data)
-artifacts/transformer_model_final/model.safetensors
-artifacts/transformer_model_final/vocab.txt
-artifacts/transformer_model_final/label_encoder.pkl
-
-# Images
-*.png
-
-# Python cache
+# Cache and temporary files
 __pycache__/
-*.pyc
-*.pyo
+*.log
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+
+# System
+.DS_Store

@@ -1,0 +1,30 @@
+# Environnements virtuels
+.venv/
+venv/
+env/
+
+# Artefacts MLflow
+mlruns/
+mlflow.db
+artifacts/
+
+# Fichiers de sortie
+output.log
+*.log
+
+# Modèles et données volumineux
+*.h5
+*.pkl
+*.pth
+*.bin
+*.onnx
+transformer_model_final/
+
+# Images
+*.png
+*.jpg
+*.jpeg
+
+# Bases de données
+*.db
+*.sqlite

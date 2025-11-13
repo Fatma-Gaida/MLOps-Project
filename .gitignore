@@ -1,30 +1,39 @@
-# Environnements virtuels
+# Virtual Environment
 .venv/
-venv/
-env/
 
-# Artefacts MLflow
+# MLflow
 mlruns/
 mlflow.db
-artifacts/
+*.db
 
-# Fichiers de sortie
-output.log
-*.log
-
-# Modèles et données volumineux
-*.h5
+# Model files (often large)
 *.pkl
+*.h5
+*.pb
+*.pt
 *.pth
-*.bin
 *.onnx
-transformer_model_final/
+*.safetensors
+
+# Logs
+*.log
+output.log
+
+# Docker
+docker-compose.yml
+
+# Environment variables
+.env
+
+# Artifacts (models, data)
+artifacts/transformer_model_final/model.safetensors
+artifacts/transformer_model_final/vocab.txt
+artifacts/transformer_model_final/label_encoder.pkl
 
 # Images
 *.png
-*.jpg
-*.jpeg
 
-# Bases de données
-*.db
-*.sqlite
+# Python cache
+__pycache__/
+*.pyc
+*.pyo

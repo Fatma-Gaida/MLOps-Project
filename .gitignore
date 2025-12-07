@@ -1,22 +1,102 @@
-# Virtual environment
 .venv/
 venv/
+env/
+ENV/
 
-# ML models and weights
+
+# Python cache
+**pycache**/
+*.pyc
+*.pyo
+*.pyd
+
+# ML Models & Weights
+
+# PyTorch
+
+*.pt
 *.pth
+*.bin
 *.safetensors
 
-# MLflow runs
-mlruns/
+# TensorFlow / Keras
 
-# Cache and temporary files
-__pycache__/
+*.h5
+*.pb
+*.ckpt
+
+# Scikit-learn / Joblib / Pickle
+
+*.joblib
+*.pkl
+*.pickle
+
+# ONNX
+
+*.onnx
+
+# HuggingFace models
+
+models/
+tokenizer.json
+tokenizer_config.json
+vocab.json
+merges.txt
+special_tokens_map.json
+
+# LangChain / Embeddings
+
+index.faiss
+*.npy
+*.npz
+
+# MLflow & artifacts
+
+mlruns/
+artifacts/
+runs/
+checkpoints/
+
+# Logs & temp data
+
 *.log
 *.tmp
+*.cache
+*.egg-info/
 
-# IDE
+# Data files (large)
+
+
+*.csv
+*.tsv
+*.parquet
+*.feather
+*.sqlite
+*.db
+
+# Allow only small sample datasets:
+
+!data/sample_*.csv
+
+# -------------------------
+
+# Jupyter
+
+.ipynb_checkpoints/
+
+# -------------------------
+
+# IDE & System
+
+# -------------------------
+
 .vscode/
 .idea/
-
-# System
 .DS_Store
+Thumbs.db
+
+
+# Docker
+
+*.tar
+docker-data/

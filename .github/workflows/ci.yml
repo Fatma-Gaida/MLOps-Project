@@ -1,15 +1,16 @@
-name: CI/CD - CallCenterAI (No Docker)
+name: CI Pipeline
 
 on:
   push:
-    branches: ["chaima-tfidf-service"]
+    branches:
+      - chaima-tfidf-service
   pull_request:
-    branches: ["chaima-tfidf-service"]
 
 jobs:
-  lint-and-type:
+  lint_format_type:
     name: Lint, Format & Type Check
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -26,7 +27,74 @@ jobs:
           pip install black isort flake8 mypy
 
       - name: Run Black (format)
-        run: black --check --line-length=88 .
+        run: black --check .
 
-      - name: Run Isort (import sorting)
+      - name: Run Isort
         run: isort --check-only --profile black .
+
+      - name: Run flake8
+        run: flake8 .
+
+      - name: Run mypy
+        run: mypy --ignore-missing-imports .
+
+  tests:
+    name: Unit Tests & Coverage
+    runs-on: ubuntu-latest
+    needs: lint_format_type
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov
+
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=./ --cov-report=xml --cov-report=term
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+  security_scan:
+    name: Trivy Secrets Scan
+    runs-on: ubuntu-latest
+    needs: lint_format_type
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install wget -y
+          wget https://github.com/aquasecurity/trivy/releases/latest/download/trivy_0.50.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.50.0_Linux-64bit.deb
+
+      - name: Run Trivy (secrets scanner)
+        run: trivy fs --scanners secret .
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [tests, security_scan]
+
+    steps:
+      - name: Summary
+        run: |
+          echo "### ✔ CI COMPLETED SUCCESSFULLY" >> $GITHUB_STEP_SUMMARY
+          echo "- Lint/Format/Type: OK" >> $GITHUB_STEP_SUMMARY
+          echo "- Tests & Coverage: OK" >> $GITHUB_STEP_SUMMARY
+          echo "- Security Scan (Secrets): OK" >> $GITHUB_STEP_SUMMARY

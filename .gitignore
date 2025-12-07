@@ -19,3 +19,10 @@ __pycache__/
 *.log
 .vscode/
 .idea/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# GitHub Actions artifacts
+coverage.xml
+test-reports/

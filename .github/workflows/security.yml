@@ -1,0 +1,21 @@
+name: Security Scan (Trivy)
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: "0 0 * * 1"  # every Monday
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -
+
+      - name: Scan for secrets
+        run: ./trivy fs --scanners secret .

@@ -1,28 +1,31 @@
 import os
-import pandas as pd
-import joblib
-from sklearn.pipeline import Pipeline
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.svm import LinearSVC
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, f1_score
-import mlflow
 
+import joblib
+import mlflow
+import pandas as pd
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics import accuracy_score, f1_score
+from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.svm import LinearSVC
 
 df = pd.read_csv("../../data/tickets.csv")
 X = df["Document"]
 y = df["Topic_group"]
 
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
 
-pipeline = Pipeline([
-    ("tfidf", TfidfVectorizer(max_features=30000, ngram_range=(1,2))),
-    ("svm", CalibratedClassifierCV(LinearSVC(), cv=3))
-])
-
+pipeline = Pipeline(
+    [
+        ("tfidf", TfidfVectorizer(max_features=30000, ngram_range=(1, 2))),
+        ("svm", CalibratedClassifierCV(LinearSVC(), cv=3)),
+    ]
+)
 
 
 with mlflow.start_run():

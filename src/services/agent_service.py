@@ -1,13 +1,17 @@
 from groq import Groq
+
 from src.services.tfidf_services import TFIDFService
 from src.services.transformer_service import TransformerService
+
 
 class AgentService:
     def __init__(self):
         print("🤖 Using Groq Inference API for routing...")
 
         # Initialize Groq client
-        self.client = Groq(api_key="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")
+        self.client = Groq(
+            api_key="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"
+        )
 
         self.tfidf_service = TFIDFService()
         self.transformer_service = TransformerService()
@@ -49,7 +53,7 @@ Answer:
             model="llama-3.3-70b-versatile",
             messages=[{"role": "user", "content": prompt}],
             max_tokens=30,
-            temperature=0.7
+            temperature=0.7,
         )
 
         result = response.choices[0].message.content.strip().upper()
@@ -69,7 +73,4 @@ Answer:
         else:
             prediction = self.transformer_service.generate(text)
 
-        return {
-            "chosen_model": decision,
-            "prediction": prediction
-        }
+        return {"chosen_model": decision, "prediction": prediction}

@@ -1,13 +1,12 @@
 import mlflow
 import mlflow.pytorch
 import json
-import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer
 import os
 from datetime import datetime
 
 # Configuration
-model_path = "./transformer"
+model_path = "./../../transformer"
 metrics_path = os.path.join(model_path, "metrics.json")
 
 print("Loading model and metrics...")

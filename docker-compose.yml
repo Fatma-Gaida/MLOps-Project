@@ -1,42 +1,188 @@
+version: '3.8'
+
 services:
-  fastapi:
+  # ============================================
+  # ML Services
+  # ============================================
+  
+  tfidf_service:
     build:
-      context: ./services/transformer_service
+      context: ./services/tfidf_service
       dockerfile: Dockerfile
-    container_name: fastapi_app
+    container_name: tfidf_service
+    ports:
+      - "8002:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MODEL_PATH=/app/models
+    volumes:
+      - ./services/tfidf_service/mlruns:/app/mlruns:ro
+    networks:
+      - mlops_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  transformer_service:
+    build:
+      context: .
+      dockerfile: ./services/transformer_service/Dockerfile
+    container_name: transformer_service
+    ports:
+      - "8001:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MODEL_PATH=/app/transformer
+      - TRANSFORMERS_CACHE=/app/.cache
+    volumes:
+      - ./transformer:/app/transformer:ro
+      - ./services/transformer_service/mlruns:/app/mlruns:ro
+      - transformer_cache:/app/.cache
+    networks:
+      - mlops_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  agent_service:
+    build:
+      context: ./services/agent_service
+      dockerfile: Dockerfile
+    container_name: agent_service
     ports:
       - "8000:8000"
     environment:
+      - PYTHONUNBUFFERED=1
+      - TFIDF_SERVICE_URL=http://tfidf_service:8000
+      - TRANSFORMER_SERVICE_URL=http://transformer_service:8000
       - MLFLOW_TRACKING_URI=http://mlflow:5000
-      - MODEL_PATH=/transformer_model_final
     volumes:
-      - ./services/transformer_service:/service
-      - ./transformer_model_final:/transformer_model_final
-    working_dir: /service
-    depends_on:
-      mlflow:
-        condition: service_started
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      - ./services/agent_service/mlruns:/app/mlruns:ro
     networks:
       - mlops_network
+    depends_on:
+      tfidf_service:
+        condition: service_healthy
+      transformer_service:
+        condition: service_healthy
+      mlflow:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+
+  # ============================================
+  # MLOps Tools
+  # ============================================
 
   mlflow:
-    image: ghcr.io/mlflow/mlflow:v2.14.1
-    container_name: mlflow_server
+    image: ghcr.io/mlflow/mlflow:v2.10.2
+    container_name: mlflow
     ports:
       - "5000:5000"
     environment:
-      - BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
-      - ARTIFACT_ROOT=/mlflow/artifacts
+      - MLFLOW_BACKEND_STORE_URI=sqlite:///mlflow/mlflow.db
+      - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
     volumes:
-      - ./mlruns:/mlflow/mlruns
-      - ./artifacts:/mlflow/artifacts
-      - ./mlflow.db:/mlflow/mlflow.db
-    working_dir: /mlflow
-    command: mlflow server --host 0.0.0.0 --port 5000 --backend-store-uri sqlite:///mlflow/mlflow.db --default-artifact-root /mlflow/artifacts
+      - mlflow_data:/mlflow
+      # Vous pouvez monter les mlruns de chaque service si nécessaire
+      - ./services/tfidf_service/mlruns:/mlflow/tfidf_mlruns:ro
+      - ./services/transformer_service/mlruns:/mlflow/transformer_mlruns:ro
+      - ./services/agent_service/mlruns:/mlflow/agent_mlruns:ro
     networks:
       - mlops_network
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri sqlite:///mlflow/mlflow.db
+      --default-artifact-root /mlflow/artifacts
+    restart: unless-stopped
+
+  # ============================================
+  # Monitoring Stack
+  # ============================================
+
+  prometheus:
+    image: prom/prometheus:v2.48.1
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+      - '--web.enable-lifecycle'
+    networks:
+      - mlops_network
+    depends_on:
+      - agent_service
+      - tfidf_service
+      - transformer_service
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:10.2.3
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SERVER_ROOT_URL=http://localhost:3000
+      - GF_INSTALL_PLUGINS=
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    networks:
+      - mlops_network
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+# ============================================
+# Networks
+# ============================================
 
 networks:
   mlops_network:
     driver: bridge
+    name: mlops_network
+
+# ============================================
+# Volumes
+# ============================================
+
+volumes:
+  mlflow_data:
+    name: mlflow_data
+  prometheus_data:
+    name: prometheus_data
+  grafana_data:
+    name: grafana_data
+  transformer_cache:
+    name: transformer_cache

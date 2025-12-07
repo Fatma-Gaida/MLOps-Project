@@ -27,7 +27,7 @@ PREDICTION_CONFIDENCE = Histogram('transformer_prediction_confidence', 'Predicti
 model = None
 tokenizer = None
 label_mapping = None
-MODEL_PATH = os.getenv("MODEL_PATH", "../../transformer_model_final")
+MODEL_PATH = os.getenv("MODEL_PATH", "../../transformer")
 
 # ==========================================================
 # Modèles Pydantic

@@ -1,0 +1,43 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'callcenterai-monitor'
+
+scrape_configs:
+  # Agent Service
+  - job_name: 'agent_service'
+    static_configs:
+      - targets: ['agent_service:8000']
+        labels:
+          service: 'agent'
+          environment: 'production'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # TF-IDF Service
+  - job_name: 'tfidf_service'
+    static_configs:
+      - targets: ['tfidf_service:8000']
+        labels:
+          service: 'tfidf'
+          environment: 'production'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Transformer Service
+  - job_name: 'transformer_service'
+    static_configs:
+      - targets: ['transformer_service:8000']
+        labels:
+          service: 'transformer'
+          environment: 'production'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'

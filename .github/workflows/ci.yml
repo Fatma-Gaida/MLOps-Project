@@ -29,4 +29,4 @@ jobs:
         run: black --check --line-length=88 .
 
       - name: Run Isort (import sorting)
-        run: isort --check-only --profil
+        run: isort --check-only --profile black .

@@ -68,20 +68,20 @@ jobs:
           path: coverage.xml
 
   security_scan:
-  name: Trivy Secrets Scan
-  runs-on: ubuntu-latest
-  needs: lint_format_type
+    name: Trivy Secrets Scan
+    runs-on: ubuntu-latest
+    needs: lint_format_type
 
-  steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Install Trivy
-      run: |
-        curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
 
-    - name: Run Trivy (secrets scanner)
-      run: trivy fs --scanners secret .
+      - name: Run Trivy (secrets scanner)
+        run: trivy fs --scanners secret .
 
 
   summary:

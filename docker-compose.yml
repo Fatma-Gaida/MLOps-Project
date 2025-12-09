@@ -1,10 +1,6 @@
 version: '3.8'
 
 services:
-  # ============================================
-  # ML Services
-  # ============================================
-  
   tfidf_service:
     build:
       context: .
@@ -39,7 +35,6 @@ services:
       - MODEL_PATH=/app/transformer
       - TRANSFORMERS_CACHE=/app/.cache
     volumes:
-      - ./transformer:/app/transformer:ro
       - ./services/transformer_service:/app:rw
       - transformer_cache:/app/.cache
     networks:
@@ -89,10 +84,6 @@ services:
       start_period: 15s
     restart: unless-stopped
 
-  # ============================================
-  # MLOps Tools
-  # ============================================
-
   mlflow:
     image: ghcr.io/mlflow/mlflow:v2.10.2
     container_name: mlflow
@@ -103,7 +94,6 @@ services:
       - MLFLOW_DEFAULT_ARTIFACT_ROOT=/mlflow/artifacts
     volumes:
       - mlflow_data:/mlflow
-      # Mount entire service directories for mlflow tracking
       - ./services/tfidf_service:/mlflow/tfidf_service:ro
       - ./services/transformer_service:/mlflow/transformer_service:ro
       - ./services/agent_service:/mlflow/agent_service:ro
@@ -116,10 +106,6 @@ services:
       --backend-store-uri sqlite:///mlflow/mlflow.db
       --default-artifact-root /mlflow/artifacts
     restart: unless-stopped
-
-  # ============================================
-  # Monitoring Stack
-  # ============================================
 
   prometheus:
     image: prom/prometheus:v2.48.1
@@ -164,18 +150,9 @@ services:
       - prometheus
     restart: unless-stopped
 
-# ============================================
-# Networks
-# ============================================
-
 networks:
   mlops_network:
     driver: bridge
-    name: mlops_network
-
-# ============================================
-# Volumes
-# ============================================
 
 volumes:
   mlflow_data:

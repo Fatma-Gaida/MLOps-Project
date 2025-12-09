@@ -7,24 +7,29 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements from service directory
-COPY services/tfidf_service/requirements.txt .
-
+# Copy requirements
+COPY ./services/tfidf_service/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application code from service directory
-COPY services/tfidf_service/app.py .
+# Copy application code
+COPY ./services/tfidf_service/app.py .
+COPY ./services/tfidf_service/model_train.py .
+COPY ./services/tfidf_service/classification_report.json . 
 
-# Create mlruns directory and copy if it exists
+# Copy models if they exist
+RUN mkdir -p /app/models
+COPY ./services/tfidf_service/models /app/models/ 
+
+# Create mlruns directory
 RUN mkdir -p /app/mlruns
-COPY services/tfidf_service/mlruns /app/mlruns/
+COPY ./services/tfidf_service/mlruns /app/mlruns/ 
 
-# Verification - show mlruns structure
-RUN echo "=== MLflow Directory Verification ===" && \
+# Verification
+RUN echo "=== TF-IDF Service Verification ===" && \
     ls -la /app/ && \
-    echo "=== MLruns Contents ===" && \
-    ls -la /app/mlruns/ 2>/dev/null || echo "No mlruns found"
+    ls -la /app/mlruns/ 2>/dev/null || echo "MLruns directory empty" && \
+    ls -la /app/models/ 2>/dev/null || echo "Models directory empty"
 
 EXPOSE 8000
 

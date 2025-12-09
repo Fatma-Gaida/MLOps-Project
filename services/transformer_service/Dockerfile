@@ -18,10 +18,9 @@ COPY ./services/transformer_service/requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Create transformer directory and copy if it exists
-# NOTE: transformer is in services/transformer_service/transformer/
+# Create transformer directory (don't copy if not exists)
 RUN mkdir -p /app/transformer
-COPY ./services/transformer_service/transformer /app/transformer/ 
+# REMOVED: COPY ./services/transformer_service/transformer /app/transformer/
 
 # Copy service code
 COPY ./services/transformer_service/main.py .
@@ -29,17 +28,14 @@ COPY ./services/transformer_service/config.py .
 COPY ./services/transformer_service/test_api.py .
 COPY ./services/transformer_service/mlflow_register.py .
 
-# Create mlruns directory and copy if it exists
+# Create mlruns directory
 RUN mkdir -p /app/mlruns
-COPY ./services/transformer_service/mlruns /app/mlruns/ 
-
+COPY ./services/transformer_service/mlruns /app/mlruns/
 # Verification
-RUN echo "=== Directory Verification ===" && \
+RUN echo "=== Transformer Service Verification ===" && \
     ls -la /app/ && \
-    echo "=== Transformer Contents ===" && \
-    ls -la /app/transformer/ 2>/dev/null || echo "Transformer directory empty" && \
-    echo "=== MLruns Contents ===" && \
-    ls -la /app/mlruns/ 2>/dev/null || echo "MLruns directory empty"
+    echo "=== Python files ===" && \
+    find /app -name "*.py" | head -20
 
 # Create non-root user
 RUN useradd -m -u 1000 appuser && \

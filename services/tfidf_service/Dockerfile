@@ -12,24 +12,22 @@ COPY ./services/tfidf_service/requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code only
 COPY ./services/tfidf_service/app.py .
-COPY ./services/tfidf_service/model_train.py .
-COPY ./services/tfidf_service/classification_report.json . 
+COPY ./services/tfidf_service/model_train.py . 
+COPY ./services/tfidf_service/classification_report.json .
 
-# Copy models if they exist
-RUN mkdir -p /app/models
-COPY ./services/tfidf_service/models /app/models/ 
-
-# Create mlruns directory
+# Create mlruns directory (but don't require it to exist)
 RUN mkdir -p /app/mlruns
-COPY ./services/tfidf_service/mlruns /app/mlruns/ 
+COPY ./services/tfidf_service/mlruns /app/mlruns/
+
+# REMOVED: COPY ./services/tfidf_service/models /app/models/
 
 # Verification
 RUN echo "=== TF-IDF Service Verification ===" && \
     ls -la /app/ && \
-    ls -la /app/mlruns/ 2>/dev/null || echo "MLruns directory empty" && \
-    ls -la /app/models/ 2>/dev/null || echo "Models directory empty"
+    echo "=== Python files ===" && \
+    find /app -name "*.py" -o -name "*.json" | head -20
 
 EXPOSE 8000
 

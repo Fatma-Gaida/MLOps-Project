@@ -137,6 +137,18 @@ jobs:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
+      - name: 📁 Create mlruns directories
+        run: |
+          # Create mlruns for each service
+          mkdir -p services/agent_service/mlruns
+          mkdir -p services/tfidf_service/mlruns
+          mkdir -p services/transformer_service/mlruns
+          
+          # For transformer_service with root context, also create at root
+          mkdir -p ./mlruns
+          
+          echo "✅ Created mlruns directories"
+
       - name: 🔧 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -255,6 +267,13 @@ jobs:
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
+      - name: 📁 Create mlruns directories
+        run: |
+          mkdir -p services/agent_service/mlruns
+          mkdir -p services/tfidf_service/mlruns
+          mkdir -p services/transformer_service/mlruns
+          mkdir -p ./mlruns
 
       - name: 🔧 Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

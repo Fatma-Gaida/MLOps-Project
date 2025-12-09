@@ -24,6 +24,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy application code
 COPY app.py .
 
+# Create mlruns directory and copy if it exists
+RUN mkdir -p /app/mlruns
+COPY services/agent_service/mlruns /app/mlruns/
+
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \
     chown -R appuser:appuser /app

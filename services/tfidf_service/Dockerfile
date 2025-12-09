@@ -15,19 +15,19 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # Copy application code
 COPY app.py .
 
-# Copy mlruns from the parent directory (project root)
-# The context should be set to the project root when building
-COPY mlruns /app/mlruns
+# Create mlruns directory and copy if it exists
+RUN mkdir -p /app/mlruns
+COPY services/tfidf_service/mlruns /app/mlruns/
 
 # Verification - show mlruns structure
 RUN echo "=== MLflow Directory Verification ===" && \
     ls -la /app/ && \
     echo "=== MLruns Contents ===" && \
-    ls -R /app/mlruns | head -50
+    ls -la /app/mlruns/ 2>/dev/null || echo "No mlruns found"
 
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
+    CMD curl -f http://localhost:8000/health || exit 1
 
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

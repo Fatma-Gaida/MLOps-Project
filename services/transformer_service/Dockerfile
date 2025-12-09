@@ -21,7 +21,7 @@ RUN pip install --upgrade pip && \
 # Copy the transformer model from project root
 COPY ./transformer /app/transformer
 
-# Copy service code
+# Copy service code from service directory
 COPY ./services/transformer_service/main.py .
 COPY ./services/transformer_service/config.py .
 COPY ./services/transformer_service/test_api.py .

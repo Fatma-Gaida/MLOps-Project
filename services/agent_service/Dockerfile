@@ -15,18 +15,18 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Copy requirements from service directory
+COPY services/agent_service/requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY app.py .
+# Copy application code from service directory
+COPY services/agent_service/app.py .
 
 # Create mlruns directory and copy if it exists
 RUN mkdir -p /app/mlruns
-COPY services/agent_service/mlruns /app/mlruns/
+COPY services/agent_service/mlruns /app/mlruns/ 
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \

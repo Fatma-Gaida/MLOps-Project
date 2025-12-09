@@ -7,13 +7,14 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+# Copy requirements from service directory
+COPY services/tfidf_service/requirements.txt .
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY app.py .
+# Copy application code from service directory
+COPY services/tfidf_service/app.py .
 
 # Create mlruns directory and copy if it exists
 RUN mkdir -p /app/mlruns

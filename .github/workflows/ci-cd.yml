@@ -132,10 +132,34 @@ jobs:
           - name: transformer_service
             context: .
             dockerfile: ./services/transformer_service/Dockerfile
+            # Options spéciales pour transformer (espace disque)
+            no-cache: true
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
+      - name: 🧹 Clean disk space (CRITICAL for transformer)
+        if: matrix.service.name == 'transformer_service'
+        run: |
+          echo "=== Cleaning disk space for transformer build ==="
+          sudo df -h
+          
+          # Supprimer les gros dossiers inutiles
+          sudo rm -rf /usr/share/dotnet 2>/dev/null || true
+          sudo rm -rf /opt/ghc 2>/dev/null || true
+          sudo rm -rf /usr/local/lib/android 2>/dev/null || true
+          sudo rm -rf /opt/hostedtoolcache/CodeQL 2>/dev/null || true
+          
+          # Nettoyer Docker
+          docker system prune -af 2>/dev/null || true
+          
+          # Nettoyer APT
+          sudo apt-get clean
+          sudo apt-get autoremove -y
+          
+          echo "=== Disk space after cleanup ==="
+          sudo df -h
 
       - name: 📁 Create mlruns directories
         run: |
@@ -179,8 +203,12 @@ jobs:
           load: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # IMPORTANT: No-cache pour transformer seulement
+          no-cache: ${{ matrix.service.no-cache || false }}
+          cache-from: ${{ matrix.service.no-cache && 'type=gha' || 'type=gha' }}
+          cache-to: ${{ matrix.service.no-cache && 'type=gha,mode=max' || 'type=gha,mode=max' }}
+          # Optimisations pour économiser l'espace
+          platforms: linux/amd64
 
       - name: 💾 Save image for scanning
         run: |
@@ -263,10 +291,19 @@ jobs:
           - name: transformer_service
             context: .
             dockerfile: ./services/transformer_service/Dockerfile
+            # No-cache pour transformer ici aussi
+            no-cache: true
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
+
+      - name: 🧹 Clean disk space for transformer
+        if: matrix.service.name == 'transformer_service'
+        run: |
+          echo "Cleaning disk space..."
+          docker system prune -af 2>/dev/null || true
+          sudo rm -rf /usr/share/dotnet 2>/dev/null || true
 
       - name: 📁 Create mlruns directories
         run: |
@@ -305,9 +342,11 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          # IMPORTANT: No-cache pour transformer
+          no-cache: ${{ matrix.service.no-cache || false }}
           platforms: linux/amd64
+          # Pas de cache-to pour économiser l'espace
+          cache-to: ${{ matrix.service.no-cache && '' || 'type=gha,mode=max' }}
 
   # ============================================
   # JOB 6: Deploy (optionnel)
@@ -328,18 +367,6 @@ jobs:
           echo "🎉 Deployment successful!"
           echo "Images pushed to ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_PREFIX }}"
           echo "Ready to deploy with: docker-compose pull && docker-compose up -d"
-
-      # Décommentez pour un vrai déploiement
-      # - name: 🚢 Deploy to server
-      #   uses: appleboy/ssh-action@master
-      #   with:
-      #     host: ${{ secrets.DEPLOY_HOST }}
-      #     username: ${{ secrets.DEPLOY_USER }}
-      #     key: ${{ secrets.DEPLOY_KEY }}
-      #     script: |
-      #       cd /path/to/project
-      #       docker-compose pull
-      #       docker-compose up -d
 
   # ============================================
   # JOB 7: Notification

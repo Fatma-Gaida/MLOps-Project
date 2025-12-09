@@ -1,49 +1,38 @@
-# syntax=docker/dockerfile:1
+# services/transformer_service/Dockerfile
 FROM python:3.11-slim AS builder
 
 WORKDIR /app
 
-# Installer uniquement les dépendances de compilation nécessaires
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    g++ \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copier et installer les requirements
-COPY ./services/transformer_service/requirements.txt .
+# Étape 1: Installer PyTorch CPU SEULEMENT
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir --user -r requirements.txt
+    pip install --no-cache-dir \
+    torch==2.1.1 --index-url https://download.pytorch.org/whl/cpu
 
-# Deuxième stage - image finale
+# Étape 2: Installer le reste depuis requirements.txt
+COPY ./services/transformer_service/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Étape 3: Nettoyer les fichiers inutiles de PyTorch
+RUN find /usr/local/lib/python3.11 -name "*.pyc" -delete && \
+    find /usr/local/lib/python3.11 -name "__pycache__" -type d -exec rm -rf {} + && \
+    rm -rf /usr/local/lib/python3.11/site-packages/torch/test* 2>/dev/null || true && \
+    rm -rf /usr/local/lib/python3.11/site-packages/torch/*.a 2>/dev/null || true
+
+# Deuxième stage : image finale
 FROM python:3.11-slim
 
 WORKDIR /app
 
-# Copier les packages Python installés
-COPY --from=builder /root/.local /root/.local
+# Copier uniquement les packages installés
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
 
-# Ajouter au PATH
-ENV PATH=/root/.local/bin:$PATH \
-    PYTHONPATH=/root/.local/lib/python3.11/site-packages:$PYTHONPATH
-
-# Installer les dépendances système minimales
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
-
-# Copier uniquement les fichiers nécessaires
+# Copier votre code
 COPY ./services/transformer_service/main.py .
 COPY ./services/transformer_service/config.py .
-
-# Supprimer les fichiers de développement PyTorch inutiles
-RUN find /root/.local -name "*.pyc" -delete && \
-    find /root/.local -name "__pycache__" -type d -exec rm -rf {} + && \
-    find /root/.local -name "tests" -type d -exec rm -rf {} + && \
-    find /root/.local -name "*.so" ! -name "*.cpython*.so" -delete
+COPY ./services/transformer_service/test_api.py . 
+COPY ./services/transformer_service/mlflow_register.py . 
 
 EXPOSE 8000
 
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:8000/ || exit 1
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]

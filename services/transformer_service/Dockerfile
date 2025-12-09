@@ -21,23 +21,22 @@ RUN pip install --upgrade pip && \
 # Copy the transformer model from project root
 COPY ./transformer /app/transformer
 
-# Copy service code from service directory
+# Copy service code
 COPY ./services/transformer_service/main.py .
 COPY ./services/transformer_service/config.py .
 COPY ./services/transformer_service/test_api.py .
 COPY ./services/transformer_service/mlflow_register.py .
 
-# Create mlruns directory and copy if it exists
-RUN mkdir -p /app/mlruns
-COPY ./services/transformer_service/mlruns /app/mlruns/ 
+# Copy mlruns if needed (context is project root)
+COPY ./services/transformer_service/mlruns /app/mlruns
 
 # Verification - show directory structure
 RUN echo "=== Application Directory Verification ===" && \
     ls -la /app/ && \
     echo "=== Transformer Model Contents ===" && \
-    ls -la /app/transformer/ 2>/dev/null || echo "No transformer directory found" && \
+    ls -la /app/transformer/ && \
     echo "=== MLruns Contents ===" && \
-    ls -la /app/mlruns/ 2>/dev/null || echo "No mlruns found"
+    ls -R /app/mlruns | head -50 || echo "No mlruns found"
 
 # Create non-root user for security
 RUN useradd -m -u 1000 appuser && \

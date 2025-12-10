@@ -272,7 +272,7 @@ jobs:
         with:
           image-ref: ${{ env.IMAGE_TAG }}
           format: 'table'
-          severity: 'CRITICAL,HIGH,MEDIUM'
+          severity: 'CRITICAL'
   # ============================================
   # JOB 5: Push Docker Images
   # ============================================

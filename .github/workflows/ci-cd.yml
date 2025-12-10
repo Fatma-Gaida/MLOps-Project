@@ -20,7 +20,7 @@ env:
   IMAGE_PREFIX: ${{ github.repository_owner }}/callcenterai
 
 jobs:
-  # ============================================
+# ============================================
   # JOB 1: Lint et Quality Checks
   # ============================================
   lint:
@@ -119,7 +119,6 @@ jobs:
           flags: ${{ matrix.service }}
           name: codecov-${{ matrix.service }}
         continue-on-error: true
-
   # ============================================
   # JOB 3: Build Docker Images
   # ============================================
@@ -247,7 +246,7 @@ jobs:
       actions: read
     strategy:
       matrix:
-        service: [agent_service, tfidf_service, transformer_service]
+        service: [agent_service, tfidf_service]
     
     steps:
       - name: 📥 Checkout code
@@ -308,28 +307,16 @@ jobs:
           - name: tfidf_service
             context: .
             dockerfile: ./services/tfidf_service/Dockerfile
-          - name: transformer_service
-            context: .
-            dockerfile: ./services/transformer_service/Dockerfile
-            # No-cache pour transformer ici aussi
-            no-cache: true
+          
     
     steps:
       - name: 📥 Checkout code
         uses: actions/checkout@v4
 
-      - name: 🧹 Clean disk space for transformer
-        if: matrix.service.name == 'transformer_service'
-        run: |
-          echo "Cleaning disk space..."
-          docker system prune -af 2>/dev/null || true
-          sudo rm -rf /usr/share/dotnet 2>/dev/null || true
-
       - name: 📁 Create mlruns directories
         run: |
           mkdir -p services/agent_service/mlruns
           mkdir -p services/tfidf_service/mlruns
-          mkdir -p services/transformer_service/mlruns
           
           # Create dummy files to prevent empty directory errors
           find services/*/mlruns -type d -empty -exec touch {}/.gitkeep \;
@@ -368,27 +355,7 @@ jobs:
           # Pas de cache-to pour économiser l'espace
           cache-to: ${{ matrix.service.no-cache && '' || 'type=gha,mode=max' }}
 
-  # ============================================
-  # JOB 6: Deploy (optionnel)
-  # ============================================
-  deploy:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: push
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    environment: production
-    permissions:
-      contents: read
-    
-    steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
 
-      - name: 🚀 Deploy notification
-        run: |
-          echo "🎉 Deployment successful!"
-          echo "Images pushed to ${{ env.DOCKER_REGISTRY }}/${{ env.IMAGE_PREFIX }}"
-          echo "Ready to deploy with: docker-compose pull && docker-compose up -d"
 
   # ============================================
   # JOB 7: Notification
